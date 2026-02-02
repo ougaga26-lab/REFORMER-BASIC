@@ -648,39 +648,99 @@
 
 <script>
 // ═══════════════════════════════════════════════════
-// DATA
+// DATA - 從 GitHub CSV 載入
 // ═══════════════════════════════════════════════════
-const RAW=[
-  {type:"series",main:"腳部練習",mainEn:"FOOT WORK",springs:"掛3根或4根彈簧",reps:"重複練習10-12次",subs:[{zh:"腳掌分開雙踵併攏",en:"TOES APART HEELS TOGETHER"},{zh:"腳趾抓桿",en:"WRAP TOES ON BAR"},{zh:"雙踵抵在腳踏桿上",en:"HEELS ON BAR"},{zh:"腳尖掂起",en:"HIGH HALF TOE"},{zh:"落踵與提踵",en:"LOWER & LIFT"}]},
-  {type:"series",main:"第二種姿勢",mainEn:"SECOND POSITION",springs:"掛3根或4根彈簧",reps:"重複練習10-12次",subs:[{zh:"平行",en:"PARALLEL"},{zh:"外旋",en:"LATERALLY ROTATED"},{zh:"內旋",en:"MEDIALLY ROTATED"}]},
-  {type:"series",main:"單腿練習",mainEn:"SINGLE LEG",springs:"掛2根或3根彈簧",reps:"重複練習5-10次",subs:[{zh:"單腿彎曲",en:"ONE LEG BENT"},{zh:"腳踏車式動作",en:"BICYCLE"},{zh:"單踵練習",en:"SINGLE HEEL"}]},
-  {type:"single",main:"百次拍擊",mainEn:"HUNDRED",springs:"掛2根或3根彈簧",reps:"重複練習10組",subs:[]},
-  {type:"series",main:"屈伸練習",mainEn:"BEND & STRETCH",springs:"掛2根彈簧",reps:"重複練習10次",subs:[{zh:"平行",en:"PARALLEL"},{zh:"外旋",en:"LATERALLY ROTATED"},{zh:"內旋",en:"MEDIALLY ROTATED"}]},
-  {type:"series",main:"抬腿與放腿",mainEn:"LIFT & LOWER",springs:"掛2根彈簧",reps:"重複練習5次",subs:[{zh:"平行",en:"PARALLEL"},{zh:"外旋",en:"LATERALLY ROTATED"}]},
-  {type:"single",main:"伸展內收肌",mainEn:"ADDUCTOR STRETCH",springs:"掛2根彈簧",reps:"重複練習5次",subs:[]},
-  {type:"single",main:"脊椎捲曲準備動作",mainEn:"SHORT SPINE PREP",springs:"掛2根彈簧",reps:"重複練習5次",subs:[]},
-  {type:"single",main:"脊椎捲曲",mainEn:"SHORT SPINE",springs:"掛2根彈簧",reps:"重複練習5次",subs:[]},
-  {type:"series",main:"中背部系列動作",mainEn:"MIDBACK SERIES",springs:"掛1根或2根彈簧",reps:"重複練習5次",subs:[{zh:"下壓肱三頭肌",en:"TRICEPS PRESS"},{zh:"雙臂伸直下壓",en:"STRAIGHT DOWN"},{zh:"四十五度",en:"FORTY-FIVE DEGREES"},{zh:"側展",en:"SIDE"},{zh:"畫圈",en:"CIRCLES"}]},
-  {type:"series",main:"後划準備動作",mainEn:"BACK ROWING PREPS",springs:"掛1根或2根彈簧",reps:"重複練習5-10次",subs:[{zh:"划船動作",en:"PLOW"},{zh:"分開雙肘",en:"OPEN ELBOWS"},{zh:"飛翔動作",en:"AIRPLANE"},{zh:"二頭肌捲曲",en:"BICEPS CURLS"},{zh:"肱三頭肌",en:"TRICEPS"},{zh:"向後捲動",en:"ROLL-DOWN"},{zh:"向後捲動-二頭肌捲曲",en:"ROLL-DOWN WITH BICEPS CURLS"},{zh:"側旋後捲",en:"ROLL-DOWN WITH OBLIQUES"}]},
-  {type:"series",main:"側坐手臂準備動作",mainEn:"SIDE ARM PREPS SITTING",springs:"掛1/4根或1根彈簧",reps:"重複練習5-10次",subs:[{zh:"內旋",en:"INTERNAL ROTATION"},{zh:"外旋",en:"EXTERNAL ROTATION"},{zh:"內收",en:"ADDUCTION"},{zh:"外展",en:"ABDUCTION"}]},
-  {type:"single",main:"側轉坐姿",mainEn:"SIDE TWIST SITTING",springs:"掛1/2根或1根彈簧",reps:"重複練習5次",subs:[]},
-  {type:"series",main:"前划準備動作",mainEn:"FRONT ROWING PREPS",springs:"掛1根或2根彈簧",reps:"重複練習5次",subs:[{zh:"向前伸直",en:"STRAIGHT FORWARD"},{zh:"第二種姿勢",en:"SECOND POSITION"},{zh:"雙手上托",en:"OFFERING"}]},
-  {type:"series",main:"腹部按摩",mainEn:"STOMACH MASSAGE",springs:"掛2根或3根彈簧",reps:"重複練習10次",subs:[{zh:"準備動作",en:"PREP"},{zh:"弓背",en:"ROUND BACK"},{zh:"直背",en:"STRAIGHT BACK"}]},
-  {type:"series",main:"雙臂拉動拉環(盒子豎放)",mainEn:"ARMS PULLING STRAPS, LONG BOX",springs:"掛1/2根或1根彈簧",reps:"重複練習5次",subs:[{zh:"划船動作",en:"PLOW"},{zh:"飛翔動作",en:"AIRPLANE"},{zh:"肱三頭肌",en:"TRICEPS"}]},
-  {type:"single",main:"弓背(盒子橫放)",mainEn:"ROUND BACK, SHORT BOX",springs:"掛2根彈簧",reps:"重複練習5次",subs:[]},
-  {type:"single",main:"直背(盒子橫放)",mainEn:"STRAIGHT BACK, SHORT BOX",springs:"掛2根彈簧",reps:"重複練習5次",subs:[]},
-  {type:"single",main:"扭轉(盒子橫放)",mainEn:"TWIST, SHORT BOX",springs:"掛2根彈簧",reps:"重複練習5次",subs:[]},
-  {type:"single",main:"樹姿(盒子橫放)",mainEn:"TREE, SHORT BOX",springs:"掛2根彈簧",reps:"重複練習3次",subs:[]},
-  {type:"series",main:"大象姿",mainEn:"ELEPHANT",springs:"掛1根或2根彈簧",reps:"重複練習10次",subs:[{zh:"弓背",en:"ROUND BACK"},{zh:"直背",en:"STRAIGHT BACK"}]},
-  {type:"single",main:"美人魚姿",mainEn:"MERMAID",springs:"掛1根彈簧",reps:"重複練習3-5次",subs:[]},
-  {type:"series",main:"雙腿畫弧",mainEn:"LEG CIRCLES",springs:"掛2根彈簧",reps:"重複練習10次",subs:[{zh:"平行",en:"PARALLEL"},{zh:"外旋",en:"LATERALLY ROTATED"},{zh:"內旋",en:"MEDIALLY ROTATED"}]},
-  {type:"series",main:"膝部伸展",mainEn:"KNEE STRETCHES",springs:"掛2根彈簧",reps:"重複練習10次",subs:[{zh:"準備動作",en:"PREP"},{zh:"弓背",en:"ROUND BACK"},{zh:"直背",en:"STRAIGHT BACK"}]},
-  {type:"single",main:"跑步運動",mainEn:"RUNNING",springs:"掛2根或3根彈簧",reps:"重複練習20-60次",subs:[]},
-  {type:"single",main:"髖部上抬",mainEn:"HIP LIFT",springs:"掛2根或3根彈簧",reps:"重複練習10次",subs:[]},
-  {type:"single",main:"髖部起伏",mainEn:"HIP ROLLS",springs:"掛2根或3根彈簧",reps:"重複練習5-10次",subs:[]},
-  {type:"single",main:"單側大腿伸展",mainEn:"SINGLE THIGH STRETCH",springs:"掛2根彈簧",reps:"重複練習5次",subs:[]},
-  {type:"series",main:"側劈叉",mainEn:"SIDE SPLITS",springs:"掛1/2根至2根彈簧",reps:"重複練習8-10次",subs:[{zh:"外展",en:"ABDUCTION"},{zh:"內收",en:"ADDUCTION"}]}
-];
+let RAW = []; // 初始為空，等待CSV載入
+
+// CSV URL
+const CSV_URL = 'https://raw.githubusercontent.com/ougaga26-lab/REFORMER-BASIC/main/v2.csv';
+
+// 載入並解析 CSV
+async function loadCSV() {
+  try {
+    const response = await fetch(CSV_URL);
+    const csvText = await response.text();
+    parseCSV(csvText);
+    return true;
+  } catch (error) {
+    console.error('載入 CSV 失敗:', error);
+    alert('無法載入題目資料，請檢查網路連線');
+    return false;
+  }
+}
+
+// 解析 CSV 並轉換為 RAW 格式
+function parseCSV(csvText) {
+  const lines = csvText.trim().split('\n');
+  const data = [];
+  
+  // 跳過標題行
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    
+    // 簡單的CSV解析（假設欄位用逗號分隔）
+    const cols = parseCSVLine(line);
+    
+    if (cols.length < 6) continue; // 確保有足夠的欄位
+    
+    const type = cols[0].trim(); // series 或 single
+    const main = cols[1].trim(); // 中文名稱
+    const mainEn = cols[2].trim(); // 英文名稱
+    const springs = cols[3].trim(); // 彈簧數量
+    const reps = cols[4].trim(); // 練習數量
+    const subsText = cols[5] ? cols[5].trim() : ''; // 次項目
+    
+    // 解析次項目
+    const subs = [];
+    if (subsText && type === 'series') {
+      // 次項目格式: "中文1|英文1;中文2|英文2"
+      const subPairs = subsText.split(';');
+      for (const pair of subPairs) {
+        const [zh, en] = pair.split('|').map(s => s.trim());
+        if (zh && en) {
+          subs.push({ zh, en });
+        }
+      }
+    }
+    
+    data.push({
+      type,
+      main,
+      mainEn,
+      springs,
+      reps,
+      subs
+    });
+  }
+  
+  RAW = data;
+  console.log(`載入 ${RAW.length} 個動作`);
+}
+
+// 解析CSV行（處理引號內的逗號）
+function parseCSVLine(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      result.push(current);
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  
+  result.push(current); // 最後一個欄位
+  return result;
+}
+
 
 // ═══════════════════════════════════════════════════
 // STATE
@@ -840,6 +900,7 @@ function beginGame(fromIdx){
   document.getElementById('customScreen').style.display='none';
   document.getElementById('finishBanner').style.display='none';
   document.getElementById('endBar').style.display='flex';
+  document.getElementById('chain').style.display='block'; // ⭐ 顯示chain
   document.getElementById('chain').innerHTML='';
   showPage('pageExam');
   updateProgress();
@@ -933,7 +994,36 @@ function renderActiveCard(idx){
 // ═══════════════════════════════════════════════════
 // QUIZ FLOW
 // ═══════════════════════════════════════════════════
-function startNextMainQuiz(){ if(state.currentIdx>=RAW.length)return; state.phase='selectMain'; showMainQuiz(); openOverlay(); }
+function startNextMainQuiz(){ 
+  if(state.currentIdx>=RAW.length)return; 
+  
+  const isFirst=(state.currentIdx===state.startIdx);
+  const isCustomMode=(state.mode==='custom');
+  
+  // 客製化模式的第一題：跳過選擇動作，直接問下一個問題
+  if(isFirst && isCustomMode){
+    // 不記錄main的attempt（因為沒問）
+    // 直接進入下一步
+    if(state.customOptions.springs){
+      state.phase='selectSprings'; 
+      rebuildChain();
+      setTimeout(()=>{ showSpringsQuiz(); openOverlay(); },350);
+    } else if(state.customOptions.reps){
+      state.phase='selectReps'; 
+      rebuildChain();
+      setTimeout(()=>{ showRepsQuiz(); openOverlay(); },350);
+    } else {
+      state.phase='selectType'; 
+      rebuildChain();
+      setTimeout(()=>{ showTypeQuiz(); openOverlay(); },350);
+    }
+  } else {
+    // 完整模式 或 客製化模式的後續題：正常問選擇動作
+    state.phase='selectMain'; 
+    showMainQuiz(); 
+    openOverlay();
+  }
+}
 
 function showMainQuiz(){
   const idx=state.currentIdx, correct=RAW[idx];
@@ -941,7 +1031,7 @@ function showMainQuiz(){
   const wrongs=shuffle(RAW.filter((_,i)=>i!==idx)).slice(0,4);
   const options=shuffle([correct,...wrongs]);
   const isFirst=(idx===state.startIdx);
-  const stepLabel=isFirst?'':'STEP 1 — 選擇下一個動作';
+  const stepLabel=''; // 移除STEP 1標籤
   const question=isFirst?'第一個動作是？':'接下來應該是哪個動作？';
   renderQuiz(stepLabel,question,
     options.map(o=>({zh:o.main,en:o.mainEn})), correct.main,
@@ -1481,6 +1571,27 @@ function toggleRecordDetail(idx){
 }
 
 function clearHistory(){ localStorage.removeItem(SKEY); renderHistory(); }
+
+// ═══════════════════════════════════════════════════
+// 頁面初始化 - 載入CSV
+// ═══════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', async () => {
+  // 顯示載入中訊息
+  const homeHeader = document.querySelector('.home-header h1');
+  if (homeHeader) {
+    const originalText = homeHeader.textContent;
+    homeHeader.textContent = '載入中...';
+    
+    // 載入CSV
+    const success = await loadCSV();
+    
+    if (success) {
+      homeHeader.textContent = originalText;
+    } else {
+      homeHeader.textContent = '載入失敗';
+    }
+  }
+});
 </script>
 </body>
 </html>
