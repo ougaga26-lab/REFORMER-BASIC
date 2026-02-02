@@ -533,29 +533,10 @@
     </div>
   </div>
 
-      </div>
-      
-      <div class="custom-section">
-        <h3 class="custom-section-title">選擇開始位置</h3>
-        <div class="custom-pick-list" id="customPickList"></div>
-      </div>
-      
-      <button class="custom-start-btn" id="customStartBtn" onclick="startCustomChallenge()">
-        開始挑戰
-      </button>
-      
-      <button class="custom-back" onclick="goHome()">← 返回</button>
-    </div>
-  </div>
-</div>
-
-
-<!-- ═══════════════════════════════════════════════
-     PAGE: CUSTOM
-     ═══════════════════════════════════════════════ -->
-<div class="page" id="pageCustom">
-  <div class="custom-wrap">
-<h2 class="custom-main-title">客製化我的挑戰</h2>
+  <!-- custom challenge config -->
+  <div id="customScreen" style="display:none">
+    <div class="custom-wrap">
+      <h2 class="custom-main-title">客製化我的挑戰</h2>
       
       <div class="custom-section">
         <h3 class="custom-section-title">自訂你的挑戰項目</h3>
@@ -588,7 +569,8 @@
         開始挑戰
       </button>
       
-      <button class="custom-back" onclick="goHome()">← 返回</button>
+      <button class="custom-back" onclick="backToStart()">← 返回</button>
+    </div>
   </div>
 </div>
 
@@ -770,6 +752,7 @@ function goHome(){
   closeOverlay();
   // reset 首頁內部狀態，確保回來後看見開始按鈕
   document.getElementById('startScreen').style.display='block';
+  document.getElementById('customScreen').style.display='none';
   showPage('pageHome');
 }
 function goHistory(){ showPage('pageHistory'); renderHistory(); }
@@ -784,7 +767,8 @@ function chooseStart(mode){
     beginGame(0);
   } else {
     // 客製化模式：顯示配置畫面
-    showPage('pageCustom');
+    document.getElementById('startScreen').style.display='none';
+    document.getElementById('customScreen').style.display='block';
     
     // 生成動作清單（簡化版：中英文一行）+ 隨機選項
     const randomHtml=`<div class="custom-pick-item random" data-idx="-1">
@@ -821,7 +805,10 @@ function chooseStart(mode){
   }
 }
 
-function backToStart(){ goHome(); }
+function backToStart(){
+  document.getElementById('customScreen').style.display='none';
+  document.getElementById('startScreen').style.display='block';
+}
 
 function toggleOption(type){
   state.customOptions[type]=!state.customOptions[type];
@@ -845,6 +832,7 @@ function beginGame(fromIdx){
   state.finished=false;
   initErrors();
   document.getElementById('startScreen').style.display='none';
+  document.getElementById('customScreen').style.display='none';
   document.getElementById('finishBanner').style.display='none';
   document.getElementById('endBar').style.display='flex';
   document.getElementById('chain').innerHTML='';
