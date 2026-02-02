@@ -147,8 +147,16 @@
   .card-title .name-en { font-size:.64rem; color:var(--text-dim); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .card-status { font-size:.6rem; padding:3px 8px; border-radius:20px; font-weight:500; letter-spacing:.05em; text-transform:uppercase; white-space:nowrap; flex-shrink:0; }
   .card-status.correct { background:var(--accent-dim); color:var(--accent); }
-  .card-status.pending { background:var(--gold-dim); color:var(--gold); animation:pulse 2s ease-in-out infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+  /* 進行中：不顯示文字，改用綠色邊框閃爍 */
+  .card-status.pending { display:none; }
+  .card.active { border-color:var(--accent); animation:cardBorderPulse 1.5s ease-in-out infinite; }
+  @keyframes cardBorderPulse { 0%,100%{border-color:var(--accent);box-shadow:0 0 8px var(--accent-glow)} 50%{border-color:rgba(200,240,212,0.5);box-shadow:0 0 4px rgba(200,240,212,0.2)} }
+
+  /* 卡片資訊區域（彈簧 + 練習數量）— 取代原本的 pending badge 位置 */
+  .card-info { display:none; flex-direction:column; gap:3px; font-size:.62rem; color:var(--text-dim); flex-shrink:0; text-align:right; line-height:1.3; }
+  .card-info.show { display:flex; }
+  .card-info-springs { color:var(--accent); }
+  .card-info-reps { color:var(--gold); }
 
   /* sub items */
   .sub-items { border-top:1px solid var(--surface2); }
@@ -270,14 +278,19 @@
   .finish-banner .finish-time { color:var(--accent); font-size:.88rem; margin-bottom:8px; font-weight:500; }
   .finish-banner .finish-mode { color:var(--text-dim); font-size:.78rem; margin-bottom:24px; }
   .finish-banner p { color:var(--text-dim); font-size:.84rem; margin-bottom:20px; }
+  .finish-buttons { display:flex; flex-direction:column; gap:10px; align-items:center; width:100%; max-width:240px; margin:0 auto; }
   .restart-btn {
-    display:block; width:100%; max-width:240px; margin:0 auto;
+    display:block; width:100%;
     padding:13px; border-radius:12px;
     background:var(--accent); color:var(--bg); border:none;
     font-family:'DM Sans',sans-serif; font-size:.85rem; font-weight:500;
     cursor:pointer; transition:opacity .2s;
   }
   .restart-btn:active { opacity:.7; }
+  .restart-btn.secondary {
+    background:transparent; border:1px solid var(--surface2);
+    color:var(--text-dim); font-size:.8rem;
+  }
 
   /* ═══════════════════════════════════════════════
      HISTORY PAGE
@@ -290,12 +303,16 @@
 
   .history-section-title { font-size:.66rem; text-transform:uppercase; letter-spacing:.1em; color:var(--text-dim); margin:22px 0 10px; }
 
-  /* record item — 3 badges */
+  /* record item */
   .record-item {
-    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
     background:var(--surface); border:1px solid var(--surface2);
     border-radius:10px; padding:12px 14px; margin-bottom:6px;
+    transition:border-color .2s;
   }
+  .record-item.expandable { cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .record-item.expandable:active { border-color:var(--accent); }
+  
+  .record-header { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
   .record-date { font-size:.8rem; color:var(--text); font-variant-numeric:tabular-nums; flex-shrink:0; }
   .record-badges { display:flex; gap:5px; flex-wrap:wrap; margin-left:auto; }
   .record-badge {
@@ -306,27 +323,55 @@
   .record-badge.partial { background:var(--gold-dim); color:var(--gold); }
   .record-badge.complete { background:var(--accent-dim); color:var(--accent); }
   .record-badge.interrupted { background:var(--red-dim); color:var(--red); }
+  .record-badge.error { background:rgba(240,180,100,0.15); color:#f0b464; }
+  
+  /* 測驗記錄內的錯誤明細 */
+  .record-details { margin-top:12px; padding-top:12px; border-top:1px solid var(--surface2); }
+  
+  /* 上半部：縮小版電池圖 + 資訊 */
+  .analysis-item-small {
+    padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.03);
+  }
+  .analysis-item-small:last-child { border-bottom:none; }
+  .a-header-small { display:flex; align-items:flex-start; gap:8px; margin-bottom:6px; }
+  .a-battery-small { width:20px; height:12px; position:relative; flex-shrink:0; margin-top:3px; }
+  .a-bat-body-small { width:17px; height:12px; border:1.5px solid var(--accent); border-radius:3px; overflow:hidden; position:relative; }
+  .a-bat-fill-small { position:absolute; bottom:0; left:0; right:0; height:100%; background:var(--accent); }
+  .a-bat-nub-small { position:absolute; right:-3px; top:50%; transform:translateY(-50%); width:2px; height:5px; background:var(--accent); border-radius:0 2px 2px 0; }
+  .a-main-row-small { flex:1; min-width:0; display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
+  .a-name-small { font-size:.9rem; color:var(--text); font-weight:500; }
+  .a-meta-small { font-size:.7rem; color:var(--text-dim); white-space:nowrap; flex-shrink:0; line-height:1.4; }
+  .a-meta-small .err-num { color:var(--red); font-weight:500; }
+  .a-detail-list-small { padding-left:28px; display:flex; flex-direction:column; gap:3px; }
 
-  /* analysis */
+  /* 下半部：標準電池圖 + 資訊 */
   .analysis-item {
-    display:flex; align-items:center; gap:10px;
-    background:var(--surface); border:1px solid var(--accent);
+    background:var(--surface); border:1px solid var(--surface2);
     border-radius:10px; padding:11px 12px; margin-bottom:4px;
   }
-  .a-battery { width:26px; height:15px; position:relative; flex-shrink:0; }
+  .a-header { display:flex; align-items:flex-start; gap:10px; margin-bottom:6px; }
+  .a-battery { width:26px; height:15px; position:relative; flex-shrink:0; margin-top:3px; }
   .a-bat-body { width:23px; height:15px; border:1.5px solid var(--accent); border-radius:4px; overflow:hidden; position:relative; }
-  .a-bat-fill { position:absolute; bottom:0; left:0; right:0; background:var(--accent); }
+  .a-bat-fill { position:absolute; bottom:0; left:0; right:0; height:100%; background:var(--accent); }
   .a-bat-nub { position:absolute; right:-3px; top:50%; transform:translateY(-50%); width:2.5px; height:6px; background:var(--accent); border-radius:0 2px 2px 0; }
-  .a-info { flex:1; min-width:0; }
-  .a-name { font-size:.78rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .a-name-en { font-size:.64rem; color:var(--text-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .a-err { font-size:.7rem; font-weight:500; white-space:nowrap; flex-shrink:0; }
-  .a-err.zero { color:var(--accent); }
-  .a-err.low { color:var(--gold); }
-  .a-err.high { color:var(--red); }
-
-  .analysis-sub { margin-left:18px; }
-  .analysis-sub .analysis-item { padding:7px 12px; border-radius:8px; border-color:var(--surface2); }
+  .a-main-row { flex:1; min-width:0; display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
+  .a-name { font-size:.95rem; color:var(--text); font-weight:500; }
+  .a-meta { font-size:.72rem; color:var(--text-dim); white-space:nowrap; flex-shrink:0; line-height:1.4; }
+  .a-meta .err-num { color:var(--red); font-weight:500; }
+  .a-detail-list { padding-left:36px; display:flex; flex-direction:column; gap:3px; }
+  
+  /* 次項目明細（舊版，已廢棄）*/
+  .analysis-sub { margin-left:34px; margin-top:4px; padding-left:8px; border-left:1px solid var(--surface2); }
+  
+  /* 細部項目列表（新版，用於上下半部）*/
+  .analysis-sub-item, .a-detail-list-small .analysis-sub-item, .a-detail-list .analysis-sub-item { 
+    display:flex; align-items:center; gap:6px; justify-content:space-between;
+    padding:3px 0;
+  }
+  .sub-item-dot { color:var(--accent); font-size:.9rem; line-height:1; flex-shrink:0; }
+  .sub-item-name { font-size:.7rem; color:var(--text); flex:1; }
+  .sub-item-err { font-size:.68rem; color:var(--text-dim); font-weight:500; white-space:nowrap; margin-left:auto; }
+  .sub-item-err .err-num { color:var(--red); }
 
   .clear-btn {
     display:block; width:100%; margin-top:28px;
@@ -414,7 +459,10 @@
     <h2 id="finishTitle">🎉 完成！</h2>
     <div class="finish-time" id="finishTime"></div>
     <div class="finish-mode" id="finishMode"></div>
-    <button class="restart-btn" onclick="goHome()">回到首頁</button>
+    <div class="finish-buttons">
+      <button class="restart-btn" onclick="goHome()">回到首頁</button>
+      <button class="restart-btn secondary" onclick="goHistory()">查看歷史紀錄</button>
+    </div>
   </div>
 
   <!-- fixed bottom: 結束測驗 -->
@@ -464,35 +512,35 @@
 // DATA
 // ═══════════════════════════════════════════════════
 const RAW=[
-  {type:"series",main:"腳部練習",mainEn:"FOOT WORK",subs:[{zh:"腳掌分開雙踵併攏",en:"TOES APART HEELS TOGETHER"},{zh:"腳趾抓桿",en:"WRAP TOES ON BAR"},{zh:"雙踵抵在腳踏桿上",en:"HEELS ON BAR"},{zh:"腳尖掂起",en:"HIGH HALF TOE"},{zh:"落踵與提踵",en:"LOWER & LIFT"}]},
-  {type:"series",main:"第二種姿勢",mainEn:"SECOND POSITION",subs:[{zh:"平行",en:"PARALLEL"},{zh:"外旋",en:"LATERALLY ROTATED"},{zh:"內旋",en:"MEDIALLY ROTATED"}]},
-  {type:"series",main:"單腿練習",mainEn:"SINGLE LEG",subs:[{zh:"單腿彎曲",en:"ONE LEG BENT"},{zh:"腳踏車式動作",en:"BICYCLE"},{zh:"單踵練習",en:"SINGLE HEEL"}]},
-  {type:"single",main:"百次拍擊",mainEn:"HUNDRED",subs:[]},
-  {type:"series",main:"屈伸練習",mainEn:"BEND & STRETCH",subs:[{zh:"平行",en:"PARALLEL"},{zh:"外旋",en:"LATERALLY ROTATED"},{zh:"內旋",en:"MEDIALLY ROTATED"}]},
-  {type:"series",main:"抬腿與放腿",mainEn:"LIFT & LOWER",subs:[{zh:"平行",en:"PARALLEL"},{zh:"外旋",en:"LATERALLY ROTATED"}]},
-  {type:"single",main:"伸展內收肌",mainEn:"ADDUCTOR STRETCH",subs:[]},
-  {type:"single",main:"脊椎捲曲準備動作",mainEn:"SHORT SPINE PREP",subs:[]},
-  {type:"single",main:"脊椎捲曲",mainEn:"SHORT SPINE",subs:[]},
-  {type:"series",main:"中背部系列動作",mainEn:"MIDBACK SERIES",subs:[{zh:"下壓肱三頭肌",en:"TRICEPS PRESS"},{zh:"雙臂伸直下壓",en:"STRAIGHT DOWN"},{zh:"四十五度",en:"FORTY-FIVE DEGREES"},{zh:"側展",en:"SIDE"},{zh:"畫圈",en:"CIRCLES"}]},
-  {type:"series",main:"後划準備動作",mainEn:"BACK ROWING PREPS",subs:[{zh:"划船動作",en:"PLOW"},{zh:"分開雙肘",en:"OPEN ELBOWS"},{zh:"飛翔動作",en:"AIRPLANE"},{zh:"二頭肌捲曲",en:"BICEPS CURLS"},{zh:"肱三頭肌",en:"TRICEPS"},{zh:"向後捲動",en:"ROLL-DOWN"},{zh:"向後捲動-二頭肌捲曲",en:"ROLL-DOWN WITH BICEPS CURLS"},{zh:"側旋後捲",en:"ROLL-DOWN WITH OBLIQUES"}]},
-  {type:"series",main:"側坐手臂準備動作",mainEn:"SIDE ARM PREPS SITTING",subs:[{zh:"內旋",en:"INTERNAL ROTATION"},{zh:"外旋",en:"EXTERNAL ROTATION"},{zh:"內收",en:"ADDUCTION"},{zh:"外展",en:"ABDUCTION"}]},
-  {type:"single",main:"側轉坐姿",mainEn:"SIDE TWIST SITTING",subs:[]},
-  {type:"series",main:"前划準備動作",mainEn:"FRONT ROWING PREPS",subs:[{zh:"向前伸直",en:"STRAIGHT FORWARD"},{zh:"第二種姿勢",en:"SECOND POSITION"},{zh:"雙手上托",en:"OFFERING"}]},
-  {type:"series",main:"腹部按摩",mainEn:"STOMACH MASSAGE",subs:[{zh:"準備動作",en:"PREP"},{zh:"弓背",en:"ROUND BACK"},{zh:"直背",en:"STRAIGHT BACK"}]},
-  {type:"series",main:"雙臂拉動拉環(盒子豎放)",mainEn:"ARMS PULLING STRAPS, LONG BOX",subs:[{zh:"划船動作",en:"PLOW"},{zh:"飛翔動作",en:"AIRPLANE"},{zh:"肱三頭肌",en:"TRICEPS"}]},
-  {type:"single",main:"弓背(盒子橫放)",mainEn:"ROUND BACK, SHORT BOX",subs:[]},
-  {type:"single",main:"直背(盒子橫放)",mainEn:"STRAIGHT BACK, SHORT BOX",subs:[]},
-  {type:"single",main:"扭轉(盒子橫放)",mainEn:"TWIST, SHORT BOX",subs:[]},
-  {type:"single",main:"樹姿(盒子橫放)",mainEn:"TREE, SHORT BOX",subs:[]},
-  {type:"series",main:"大象姿",mainEn:"ELEPHANT",subs:[{zh:"弓背",en:"ROUND BACK"},{zh:"直背",en:"STRAIGHT BACK"}]},
-  {type:"single",main:"美人魚姿",mainEn:"MERMAID",subs:[]},
-  {type:"series",main:"雙腿畫弧",mainEn:"LEG CIRCLES",subs:[{zh:"平行",en:"PARALLEL"},{zh:"外旋",en:"LATERALLY ROTATED"},{zh:"內旋",en:"MEDIALLY ROTATED"}]},
-  {type:"series",main:"膝部伸展",mainEn:"KNEE STRETCHES",subs:[{zh:"準備動作",en:"PREP"},{zh:"弓背",en:"ROUND BACK"},{zh:"直背",en:"STRAIGHT BACK"}]},
-  {type:"single",main:"跑步運動",mainEn:"RUNNING",subs:[]},
-  {type:"single",main:"髖部上抬",mainEn:"HIP LIFT",subs:[]},
-  {type:"single",main:"髖部起伏",mainEn:"HIP ROLLS",subs:[]},
-  {type:"single",main:"單側大腿伸展",mainEn:"SINGLE THIGH STRETCH",subs:[]},
-  {type:"series",main:"側劈叉",mainEn:"SIDE SPLITS",subs:[{zh:"外展",en:"ABDUCTION"},{zh:"內收",en:"ADDUCTION"}]}
+  {type:"series",main:"腳部練習",mainEn:"FOOT WORK",springs:"掛3根或4根彈簧",reps:"重複練習10-12次",subs:[{zh:"腳掌分開雙踵併攏",en:"TOES APART HEELS TOGETHER"},{zh:"腳趾抓桿",en:"WRAP TOES ON BAR"},{zh:"雙踵抵在腳踏桿上",en:"HEELS ON BAR"},{zh:"腳尖掂起",en:"HIGH HALF TOE"},{zh:"落踵與提踵",en:"LOWER & LIFT"}]},
+  {type:"series",main:"第二種姿勢",mainEn:"SECOND POSITION",springs:"掛3根或4根彈簧",reps:"重複練習10-12次",subs:[{zh:"平行",en:"PARALLEL"},{zh:"外旋",en:"LATERALLY ROTATED"},{zh:"內旋",en:"MEDIALLY ROTATED"}]},
+  {type:"series",main:"單腿練習",mainEn:"SINGLE LEG",springs:"掛2根或3根彈簧",reps:"重複練習5-10次",subs:[{zh:"單腿彎曲",en:"ONE LEG BENT"},{zh:"腳踏車式動作",en:"BICYCLE"},{zh:"單踵練習",en:"SINGLE HEEL"}]},
+  {type:"single",main:"百次拍擊",mainEn:"HUNDRED",springs:"掛2根或3根彈簧",reps:"重複練習10組",subs:[]},
+  {type:"series",main:"屈伸練習",mainEn:"BEND & STRETCH",springs:"掛2根彈簧",reps:"重複練習10次",subs:[{zh:"平行",en:"PARALLEL"},{zh:"外旋",en:"LATERALLY ROTATED"},{zh:"內旋",en:"MEDIALLY ROTATED"}]},
+  {type:"series",main:"抬腿與放腿",mainEn:"LIFT & LOWER",springs:"掛2根彈簧",reps:"重複練習5次",subs:[{zh:"平行",en:"PARALLEL"},{zh:"外旋",en:"LATERALLY ROTATED"}]},
+  {type:"single",main:"伸展內收肌",mainEn:"ADDUCTOR STRETCH",springs:"掛2根彈簧",reps:"重複練習5次",subs:[]},
+  {type:"single",main:"脊椎捲曲準備動作",mainEn:"SHORT SPINE PREP",springs:"掛2根彈簧",reps:"重複練習5次",subs:[]},
+  {type:"single",main:"脊椎捲曲",mainEn:"SHORT SPINE",springs:"掛2根彈簧",reps:"重複練習5次",subs:[]},
+  {type:"series",main:"中背部系列動作",mainEn:"MIDBACK SERIES",springs:"掛1根或2根彈簧",reps:"重複練習5次",subs:[{zh:"下壓肱三頭肌",en:"TRICEPS PRESS"},{zh:"雙臂伸直下壓",en:"STRAIGHT DOWN"},{zh:"四十五度",en:"FORTY-FIVE DEGREES"},{zh:"側展",en:"SIDE"},{zh:"畫圈",en:"CIRCLES"}]},
+  {type:"series",main:"後划準備動作",mainEn:"BACK ROWING PREPS",springs:"掛1根或2根彈簧",reps:"重複練習5-10次",subs:[{zh:"划船動作",en:"PLOW"},{zh:"分開雙肘",en:"OPEN ELBOWS"},{zh:"飛翔動作",en:"AIRPLANE"},{zh:"二頭肌捲曲",en:"BICEPS CURLS"},{zh:"肱三頭肌",en:"TRICEPS"},{zh:"向後捲動",en:"ROLL-DOWN"},{zh:"向後捲動-二頭肌捲曲",en:"ROLL-DOWN WITH BICEPS CURLS"},{zh:"側旋後捲",en:"ROLL-DOWN WITH OBLIQUES"}]},
+  {type:"series",main:"側坐手臂準備動作",mainEn:"SIDE ARM PREPS SITTING",springs:"掛1/4根或1根彈簧",reps:"重複練習5-10次",subs:[{zh:"內旋",en:"INTERNAL ROTATION"},{zh:"外旋",en:"EXTERNAL ROTATION"},{zh:"內收",en:"ADDUCTION"},{zh:"外展",en:"ABDUCTION"}]},
+  {type:"single",main:"側轉坐姿",mainEn:"SIDE TWIST SITTING",springs:"掛1/2根或1根彈簧",reps:"重複練習5次",subs:[]},
+  {type:"series",main:"前划準備動作",mainEn:"FRONT ROWING PREPS",springs:"掛1根或2根彈簧",reps:"重複練習5次",subs:[{zh:"向前伸直",en:"STRAIGHT FORWARD"},{zh:"第二種姿勢",en:"SECOND POSITION"},{zh:"雙手上托",en:"OFFERING"}]},
+  {type:"series",main:"腹部按摩",mainEn:"STOMACH MASSAGE",springs:"掛2根或3根彈簧",reps:"重複練習10次",subs:[{zh:"準備動作",en:"PREP"},{zh:"弓背",en:"ROUND BACK"},{zh:"直背",en:"STRAIGHT BACK"}]},
+  {type:"series",main:"雙臂拉動拉環(盒子豎放)",mainEn:"ARMS PULLING STRAPS, LONG BOX",springs:"掛1/2根或1根彈簧",reps:"重複練習5次",subs:[{zh:"划船動作",en:"PLOW"},{zh:"飛翔動作",en:"AIRPLANE"},{zh:"肱三頭肌",en:"TRICEPS"}]},
+  {type:"single",main:"弓背(盒子橫放)",mainEn:"ROUND BACK, SHORT BOX",springs:"掛2根彈簧",reps:"重複練習5次",subs:[]},
+  {type:"single",main:"直背(盒子橫放)",mainEn:"STRAIGHT BACK, SHORT BOX",springs:"掛2根彈簧",reps:"重複練習5次",subs:[]},
+  {type:"single",main:"扭轉(盒子橫放)",mainEn:"TWIST, SHORT BOX",springs:"掛2根彈簧",reps:"重複練習5次",subs:[]},
+  {type:"single",main:"樹姿(盒子橫放)",mainEn:"TREE, SHORT BOX",springs:"掛2根彈簧",reps:"重複練習3次",subs:[]},
+  {type:"series",main:"大象姿",mainEn:"ELEPHANT",springs:"掛1根或2根彈簧",reps:"重複練習10次",subs:[{zh:"弓背",en:"ROUND BACK"},{zh:"直背",en:"STRAIGHT BACK"}]},
+  {type:"single",main:"美人魚姿",mainEn:"MERMAID",springs:"掛1根彈簧",reps:"重複練習3-5次",subs:[]},
+  {type:"series",main:"雙腿畫弧",mainEn:"LEG CIRCLES",springs:"掛2根彈簧",reps:"重複練習10次",subs:[{zh:"平行",en:"PARALLEL"},{zh:"外旋",en:"LATERALLY ROTATED"},{zh:"內旋",en:"MEDIALLY ROTATED"}]},
+  {type:"series",main:"膝部伸展",mainEn:"KNEE STRETCHES",springs:"掛2根彈簧",reps:"重複練習10次",subs:[{zh:"準備動作",en:"PREP"},{zh:"弓背",en:"ROUND BACK"},{zh:"直背",en:"STRAIGHT BACK"}]},
+  {type:"single",main:"跑步運動",mainEn:"RUNNING",springs:"掛2根或3根彈簧",reps:"重複練習20-60次",subs:[]},
+  {type:"single",main:"髖部上抬",mainEn:"HIP LIFT",springs:"掛2根或3根彈簧",reps:"重複練習10次",subs:[]},
+  {type:"single",main:"髖部起伏",mainEn:"HIP ROLLS",springs:"掛2根或3根彈簧",reps:"重複練習5-10次",subs:[]},
+  {type:"single",main:"單側大腿伸展",mainEn:"SINGLE THIGH STRETCH",springs:"掛2根彈簧",reps:"重複練習5次",subs:[]},
+  {type:"series",main:"側劈叉",mainEn:"SIDE SPLITS",springs:"掛1/2根至2根彈簧",reps:"重複練習8-10次",subs:[{zh:"外展",en:"ABDUCTION"},{zh:"內收",en:"ADDUCTION"}]}
 ];
 
 // ═══════════════════════════════════════════════════
@@ -526,8 +574,8 @@ function tickTimer(){ state.timerSec++; document.getElementById('timerVal').text
 function fmtTime(s){ return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
 
 // errors
-function initErrors(){ state.errors={}; RAW.forEach((_,i)=>{ state.errors[i]={mainErrors:0,typeErrors:0,subErrors:[]}; RAW[i].subs.forEach(()=>state.errors[i].subErrors.push(0)); }); }
-function recordError(idx,type,si){ const e=state.errors[idx]; if(!e)return; if(type==='main')e.mainErrors++; else if(type==='type')e.typeErrors++; else if(type==='sub')e.subErrors[si]++; }
+function initErrors(){ state.errors={}; RAW.forEach((_,i)=>{ state.errors[i]={mainErrors:0,springsErrors:0,repsErrors:0,typeErrors:0,subErrors:[]}; RAW[i].subs.forEach(()=>state.errors[i].subErrors.push(0)); }); }
+function recordError(idx,type,si){ const e=state.errors[idx]; if(!e)return; if(type==='main')e.mainErrors++; else if(type==='springs')e.springsErrors++; else if(type==='reps')e.repsErrors++; else if(type==='type')e.typeErrors++; else if(type==='sub')e.subErrors[si]++; }
 
 // ═══════════════════════════════════════════════════
 // PAGE NAV
@@ -607,7 +655,7 @@ function rebuildChain(){
   state.completedMains.forEach(idx=>{
     html+=renderDoneCard(idx)+`<div class="connector"><div class="connector-line"></div></div>`;
   });
-  if(state.currentIdx<RAW.length && (state.phase==='selectType'||state.phase==='selectSub')){
+  if(state.currentIdx<RAW.length && (state.phase==='selectSprings'||state.phase==='selectReps'||state.phase==='selectType'||state.phase==='selectSub')){
     html+=renderActiveCard(state.currentIdx)+`<div class="connector"><div class="connector-line"></div></div>`;
   }
   chain.innerHTML=html;
@@ -632,10 +680,26 @@ function renderActiveCard(idx){
   const pct=it.type==='series'?(state.subIdx/it.subs.length*100):0;
   let sub='';
   if(it.type==='series'&&state.subIdx>0) sub=`<div class="sub-items">`+it.subs.slice(0,state.subIdx).map(s=>`<div class="sub-item"><div class="dot"></div><span class="sub-name">${s.zh}<span class="sub-name-en">${s.en}</span></span></div>`).join('')+`</div>`;
-  return `<div class="card"><div class="card-header">
+  
+  // 根據 phase 決定顯示內容
+  let infoHtml='';
+  if(state.phase==='selectReps'){
+    // 答對彈簧，正在問練習數量 → 只顯示彈簧
+    infoHtml=`<div class="card-info show">
+      <div class="card-info-springs">${it.springs}</div>
+    </div>`;
+  } else if(state.phase==='selectType'||state.phase==='selectSub'){
+    // 答對練習數量之後 → 顯示彈簧 + 練習
+    infoHtml=`<div class="card-info show">
+      <div class="card-info-springs">${it.springs}</div>
+      <div class="card-info-reps">${it.reps}</div>
+    </div>`;
+  }
+  
+  return `<div class="card active"><div class="card-header">
     <div class="battery"><div class="battery-body"><div class="battery-fill" style="height:${pct}%"></div></div><div class="battery-nub"></div></div>
     <div class="card-title"><div class="label">${it.type==='series'?'系列動作':'單一動作'} · #${idx+1}</div><div class="name">${it.main}</div><div class="name-en">${it.mainEn}</div></div>
-    <span class="card-status pending">進行中</span></div>${sub}</div>`;
+    ${infoHtml}</div>${sub}</div>`;
 }
 
 // ═══════════════════════════════════════════════════
@@ -654,6 +718,51 @@ function showMainQuiz(){
     options.map(o=>({zh:o.main,en:o.mainEn})), correct.main,
     (ok)=>{
       if(!ok){ recordError(idx,'main'); return; }
+      // 答對後進入彈簧數量問題
+      state.phase='selectSprings'; rebuildChain();
+      setTimeout(()=>{ showSpringsQuiz(); openOverlay(); },420);
+    }
+  );
+}
+
+function showSpringsQuiz(){
+  const idx=state.currentIdx, correct=RAW[idx];
+  // 隨機從其他主項目抓2個作為錯誤選項
+  const others=RAW.filter((_,i)=>i!==idx && RAW[i].springs!==correct.springs);
+  const wrongs=shuffle(others).slice(0,2);
+  const options=shuffle([
+    {zh:correct.springs,en:''},
+    {zh:wrongs[0]?.springs||'',en:''},
+    {zh:wrongs[1]?.springs||'',en:''}
+  ].filter(o=>o.zh));
+  
+  renderQuiz('','「'+correct.main+'」的彈簧數量是？',
+    options, correct.springs,
+    (ok)=>{
+      if(!ok){ recordError(idx,'springs'); return; }
+      // 答對後進入練習數量問題
+      state.phase='selectReps'; rebuildChain();
+      setTimeout(()=>{ showRepsQuiz(); openOverlay(); },420);
+    }
+  );
+}
+
+function showRepsQuiz(){
+  const idx=state.currentIdx, correct=RAW[idx];
+  // 隨機從其他主項目抓2個作為錯誤選項
+  const others=RAW.filter((_,i)=>i!==idx && RAW[i].reps!==correct.reps);
+  const wrongs=shuffle(others).slice(0,2);
+  const options=shuffle([
+    {zh:correct.reps,en:''},
+    {zh:wrongs[0]?.reps||'',en:''},
+    {zh:wrongs[1]?.reps||'',en:''}
+  ].filter(o=>o.zh));
+  
+  renderQuiz('','「'+correct.main+'」的練習數量是？',
+    options, correct.reps,
+    (ok)=>{
+      if(!ok){ recordError(idx,'reps'); return; }
+      // 答對後進入類型判斷
       state.phase='selectType'; rebuildChain();
       setTimeout(()=>{ showTypeQuiz(); openOverlay(); },420);
     }
@@ -663,7 +772,7 @@ function showMainQuiz(){
 function showTypeQuiz(){
   const it=RAW[state.currentIdx];
   const correct=it.type==='series'?'系列動作':'單一動作';
-  renderQuiz('STEP 2 — 判斷動作類型',`「${it.main}」是哪種類型？`,
+  renderQuiz('',`「${it.main}」是哪種類型？`,
     shuffle([{zh:'系列動作',en:'Series'},{zh:'單一動作',en:'Single'}]), correct,
     (ok)=>{
       if(!ok){ recordError(state.currentIdx,'type'); return; }
@@ -850,19 +959,117 @@ function renderHistory(){
   else {
     const reversed=[...history].reverse();
     const SHOW_LIMIT=5;
-    const allHtml=reversed.map(r=>{
+    
+    const allHtml=reversed.map((r,rIdx)=>{
       const modeClass=r.mode==='full'?'full':'partial';
       const modeLabel=r.mode==='full'?'完整測驗':'局部測驗';
       const statusClass=r.finished?'complete':'interrupted';
       const statusLabel=r.finished?'完成':'中斷';
-      return `<div class="record-item">
-        <div class="record-date">${r.date} ${r.time}</div>
-        <div class="record-badges">
-          <span class="record-badge ${modeClass}">${modeLabel}</span>
-          <span class="record-badge ${statusClass}">${statusLabel}</span>
+      
+      // 計算此次測驗的總錯誤數
+      let totalErrors=0;
+      const itemsWithErrors=[];
+      
+      if(r.errors){
+        Object.keys(r.errors).forEach(k=>{
+          const idx=parseInt(k), e=r.errors[k];
+          const item=RAW[idx];
+          if(!item) return;
+          
+          const mainErr=e.mainErrors||0;
+          const springsErr=e.springsErrors||0;
+          const repsErr=e.repsErrors||0;
+          const typeErr=e.typeErrors||0;
+          const subErrs=e.subErrors||[];
+          const subTotal=subErrs.reduce((sum,x)=>sum+x,0);
+          const itemTotal=mainErr+springsErr+repsErr+typeErr+subTotal;
+          
+          totalErrors+=itemTotal;
+          
+          if(itemTotal>0){
+            itemsWithErrors.push({
+              item,
+              mainErr,
+              springsErr,
+              repsErr,
+              typeErr,
+              subErrs,  // 保留完整的陣列
+              subTotal,
+              total:itemTotal
+            });
+          }
+        });
+      }
+      
+      const hasErrors=itemsWithErrors.length>0;
+      const errorBadge=hasErrors?`<span class="record-badge error">${totalErrors}個錯誤</span>`:'';
+      
+      // 生成錯誤明細
+      let detailsHtml='';
+      if(hasErrors){
+        detailsHtml=`<div class="record-details" id="record-details-${rIdx}" style="display:none">
+          ${itemsWithErrors.map(d=>{
+            // 建立同一行的錯誤次數文字（彈簧｜練習｜類型）
+            const metaParts=[];
+            if(d.springsErr>0) metaParts.push(`彈簧數量<span class="err-num">${d.springsErr}</span>次`);
+            if(d.repsErr>0) metaParts.push(`練習數量<span class="err-num">${d.repsErr}</span>次`);
+            if(d.typeErr>0) metaParts.push(`類型<span class="err-num">${d.typeErr}</span>次`);
+            const metaText=metaParts.length>0?metaParts.join(' | '):'';
+
+            
+            // 建立細部列表（主要動作錯誤、各次項目錯誤）- 只列出有錯的
+            let detailItems='';
+            if(d.mainErr>0){
+              detailItems+=`<div class="analysis-sub-item">
+                <span class="sub-item-dot">•</span>
+                <span class="sub-item-name">主要動作</span>
+                <span class="sub-item-err"><span class="err-num">${d.mainErr}</span>次</span>
+              </div>`;
+            }
+            // 添加次項目錯誤（只列出有錯的）
+            if(d.item.type==='series' && d.subErrs && d.subErrs.length>0){
+              d.item.subs.forEach((s,si)=>{
+                const sErr=d.subErrs[si]||0;
+                if(sErr>0){
+                  detailItems+=`<div class="analysis-sub-item">
+                    <span class="sub-item-dot">•</span>
+                    <span class="sub-item-name">${s.zh}</span>
+                    <span class="sub-item-err"><span class="err-num">${sErr}</span>次</span>
+                  </div>`;
+                }
+              });
+            }
+            
+            return `<div class="analysis-item-small">
+              <div class="a-header-small">
+                <div class="a-battery-small">
+                  <div class="a-bat-body-small"><div class="a-bat-fill-small"></div></div>
+                  <div class="a-bat-nub-small"></div>
+                </div>
+                <div class="a-main-row-small">
+                  <div class="a-name-small">${d.item.main}</div>
+                  ${metaText?`<div class="a-meta-small">${metaText}</div>`:''}
+                </div>
+              </div>
+              ${detailItems?`<div class="a-detail-list-small">${detailItems}</div>`:''}
+            </div>`;
+          }).join('')}
+        </div>`;
+      }
+      
+      return `<div class="record-item ${hasErrors?'expandable':''}" ${hasErrors?`onclick="toggleRecordDetail(${rIdx})"`:''}>
+        <div class="record-header">
+          <div class="record-date">${r.date} ${r.time}</div>
+          <div class="record-badges">
+            <span class="record-badge ${modeClass}">${modeLabel}</span>
+            <span class="record-badge ${statusClass}">${statusLabel}</span>
+            ${errorBadge}
+          </div>
         </div>
+        ${detailsHtml}
       </div>`;
     });
+    
     if(reversed.length<=SHOW_LIMIT){
       rList.innerHTML=allHtml.join('');
     } else {
@@ -876,7 +1083,7 @@ function renderHistory(){
 
   // ─── 數據分析 ───
   const totalErr={}, totalAtt={};
-  RAW.forEach((_,i)=>{ totalErr[i]={main:0,type:0,sub:[]}; totalAtt[i]={main:0,type:0,sub:[]}; RAW[i].subs.forEach(()=>{ totalErr[i].sub.push(0); totalAtt[i].sub.push(0); }); });
+  RAW.forEach((_,i)=>{ totalErr[i]={main:0,springs:0,reps:0,type:0,sub:[]}; totalAtt[i]={main:0,springs:0,reps:0,type:0,sub:[]}; RAW[i].subs.forEach(()=>{ totalErr[i].sub.push(0); totalAtt[i].sub.push(0); }); });
 
   history.forEach(r=>{
     if(!r.errors)return;
@@ -884,6 +1091,8 @@ function renderHistory(){
       const idx=parseInt(k), e=r.errors[k];
       if(!totalErr[idx])return;
       totalErr[idx].main+=(e.mainErrors||0); totalAtt[idx].main+=1;
+      totalErr[idx].springs+=(e.springsErrors||0); totalAtt[idx].springs+=1;
+      totalErr[idx].reps+=(e.repsErrors||0); totalAtt[idx].reps+=1;
       totalErr[idx].type+=(e.typeErrors||0); totalAtt[idx].type+=1;
       if(e.subErrors) e.subErrors.forEach((c,si)=>{
         if(totalErr[idx].sub[si]!==undefined){ totalErr[idx].sub[si]+=c; totalAtt[idx].sub[si]+=1; }
@@ -894,38 +1103,65 @@ function renderHistory(){
   const aList=document.getElementById('analysisList');
   if(!history.length){ aList.innerHTML=`<div class="empty-msg">沒有數據</div>`; }
   else {
+    // 下半部：顯示所有項目
     aList.innerHTML=RAW.map((item,idx)=>{
-      const e=totalErr[idx], a=totalAtt[idx];
-      let tErr=e.main+e.type, tAtt=a.main+a.type;
-      e.sub.forEach((c,si)=>{ tErr+=c; tAtt+=a.sub[si]; });
-      const rate=tAtt>0?Math.round(tErr/tAtt*100):0;
-      const cls=rate===0?'zero':(rate<=30?'low':'high');
+      const e=totalErr[idx];
+      const mainErr=e.main, springsErr=e.springs, repsErr=e.reps, typeErr=e.type;
+      const subErrs=e.sub;
+      const subTotal=subErrs.reduce((sum,x)=>sum+x,0);
+      const total=mainErr+springsErr+repsErr+typeErr+subTotal;
+      
+      // 建立同一行的錯誤次數文字（固定顯示：彈簧數量｜練習數量｜類型）
+      const a=totalAtt[idx];
+      const metaParts=[];
+      // 彈簧數量
+      if(a.springs>0) metaParts.push(`彈簧數量<span class="err-num">${springsErr}</span>次`);
+      else metaParts.push(`彈簧數量無紀錄`);
+      // 練習數量
+      if(a.reps>0) metaParts.push(`練習數量<span class="err-num">${repsErr}</span>次`);
+      else metaParts.push(`練習數量無紀錄`);
+      // 類型
+      if(a.type>0) metaParts.push(`類型<span class="err-num">${typeErr}</span>次`);
+      else metaParts.push(`類型無紀錄`);
+      const metaText=metaParts.join(' | ');
 
-      let subsHtml='';
+      
+      // 建立細部列表（所有項目都列出來，根據有無紀錄顯示）
+      let detailItems='';
+      // 主要動作
+      const mainAtt=a.main;
+      detailItems+=`<div class="analysis-sub-item">
+        <span class="sub-item-dot">•</span>
+        <span class="sub-item-name">主要動作</span>
+        <span class="sub-item-err">${mainAtt>0?(mainErr>0?`<span class="err-num">${mainErr}</span>次`:'無錯誤'):'無紀錄'}</span>
+      </div>`;
+      
+      // 所有次項目（包括無錯誤的）
       if(item.type==='series'){
-        subsHtml=`<div class="analysis-sub">`+item.subs.map((s,si)=>{
-          const sE=totalErr[idx].sub[si], sA=totalAtt[idx].sub[si];
-          const sR=sA>0?Math.round(sE/sA*100):0;
-          const sC=sR===0?'zero':(sR<=30?'low':'high');
-          return `<div class="analysis-item">
-            <div class="a-battery" style="width:20px;height:12px">
-              <div class="a-bat-body" style="width:17px;height:12px"><div class="a-bat-fill" style="height:${100-sR}%"></div></div>
-              <div class="a-bat-nub" style="width:2px;height:5px"></div>
-            </div>
-            <div class="a-info"><div class="a-name" style="font-size:.72rem">${s.zh}</div><div class="a-name-en" style="font-size:.6rem">${s.en}</div></div>
-            <div class="a-err ${sC}">${sR}%</div>
+        item.subs.forEach((s,si)=>{
+          const sErr=subErrs[si]||0;
+          const sAtt=a.sub[si]||0;
+          detailItems+=`<div class="analysis-sub-item">
+            <span class="sub-item-dot">•</span>
+            <span class="sub-item-name">${s.zh}</span>
+            <span class="sub-item-err">${sAtt>0?(sErr>0?`<span class="err-num">${sErr}</span>次`:'無錯誤'):'無紀錄'}</span>
           </div>`;
-        }).join('')+`</div>`;
+        });
       }
-
+      
       return `<div class="analysis-item">
-        <div class="a-battery">
-          <div class="a-bat-body"><div class="a-bat-fill" style="height:${100-rate}%"></div></div>
-          <div class="a-bat-nub"></div>
+        <div class="a-header">
+          <div class="a-battery">
+            <div class="a-bat-body"><div class="a-bat-fill"></div></div>
+            <div class="a-bat-nub"></div>
+          </div>
+          <div class="a-main-row">
+            <div class="a-name">${item.main}</div>
+            ${metaText?`<div class="a-meta">${metaText}</div>`:''}
+          </div>
         </div>
-        <div class="a-info"><div class="a-name">${item.main}</div><div class="a-name-en">${item.mainEn}</div></div>
-        <div class="a-err ${cls}">${rate}%</div>
-      </div>${subsHtml}`;
+        <div class="a-detail-list">${detailItems}</div>
+      </div>`;
     }).join('');
   }
 }
@@ -937,6 +1173,13 @@ function toggleRecords(){
   const isOpen=(more.style.display==='block');
   more.style.display=isOpen?'none':'block';
   btn.textContent=isOpen?'更多紀錄... ('+more.querySelectorAll('.record-item').length+')':'收起';
+}
+
+function toggleRecordDetail(idx){
+  const detail=document.getElementById('record-details-'+idx);
+  if(!detail) return;
+  const isOpen=(detail.style.display==='block');
+  detail.style.display=isOpen?'none':'block';
 }
 
 function clearHistory(){ localStorage.removeItem(SKEY); renderHistory(); }
