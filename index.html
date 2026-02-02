@@ -679,10 +679,8 @@ function parseCSV(csvText) {
     const line = lines[i].trim();
     if (!line) continue;
     
-    // 簡單的CSV解析（假設欄位用逗號分隔）
     const cols = parseCSVLine(line);
-    
-    if (cols.length < 6) continue; // 確保有足夠的欄位
+    if (cols.length < 6) continue;
     
     const type = cols[0].trim(); // series 或 single
     const main = cols[1].trim(); // 中文名稱
@@ -691,10 +689,9 @@ function parseCSV(csvText) {
     const reps = cols[4].trim(); // 練習數量
     const subsText = cols[5] ? cols[5].trim() : ''; // 次項目
     
-    // 解析次項目
+    // 解析次項目：格式 "中文1|英文1;中文2|英文2"
     const subs = [];
     if (subsText && type === 'series') {
-      // 次項目格式: "中文1|英文1;中文2|英文2"
       const subPairs = subsText.split(';');
       for (const pair of subPairs) {
         const [zh, en] = pair.split('|').map(s => s.trim());
