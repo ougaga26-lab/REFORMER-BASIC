@@ -574,8 +574,33 @@ function tickTimer(){ state.timerSec++; document.getElementById('timerVal').text
 function fmtTime(s){ return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
 
 // errors
-function initErrors(){ state.errors={}; RAW.forEach((_,i)=>{ state.errors[i]={mainErrors:0,springsErrors:0,repsErrors:0,typeErrors:0,subErrors:[]}; RAW[i].subs.forEach(()=>state.errors[i].subErrors.push(0)); }); }
-function recordError(idx,type,si){ const e=state.errors[idx]; if(!e)return; if(type==='main')e.mainErrors++; else if(type==='springs')e.springsErrors++; else if(type==='reps')e.repsErrors++; else if(type==='type')e.typeErrors++; else if(type==='sub')e.subErrors[si]++; }
+function initErrors(){ state.errors={}; }
+function recordError(idx,type,si){ 
+  if(!state.errors[idx]) state.errors[idx]={};
+  const e=state.errors[idx];
+  if(type==='main'){ if(!e.mainErrors) e.mainErrors=0; e.mainErrors++; }
+  else if(type==='springs'){ if(!e.springsErrors) e.springsErrors=0; e.springsErrors++; }
+  else if(type==='reps'){ if(!e.repsErrors) e.repsErrors=0; e.repsErrors++; }
+  else if(type==='type'){ if(!e.typeErrors) e.typeErrors=0; e.typeErrors++; }
+  else if(type==='sub'){ 
+    if(!e.subErrors) e.subErrors=[];
+    if(!e.subErrors[si]) e.subErrors[si]=0;
+    e.subErrors[si]++;
+  }
+}
+// 記錄問題被問到（即使答對）
+function recordAttempt(idx,type,si){
+  if(!state.errors[idx]) state.errors[idx]={};
+  const e=state.errors[idx];
+  if(type==='main'){ if(e.mainErrors===undefined) e.mainErrors=0; }
+  else if(type==='springs'){ if(e.springsErrors===undefined) e.springsErrors=0; }
+  else if(type==='reps'){ if(e.repsErrors===undefined) e.repsErrors=0; }
+  else if(type==='type'){ if(e.typeErrors===undefined) e.typeErrors=0; }
+  else if(type==='sub'){
+    if(!e.subErrors) e.subErrors=[];
+    if(e.subErrors[si]===undefined) e.subErrors[si]=0;
+  }
+}
 
 // ═══════════════════════════════════════════════════
 // PAGE NAV
@@ -709,6 +734,7 @@ function startNextMainQuiz(){ if(state.currentIdx>=RAW.length)return; state.phas
 
 function showMainQuiz(){
   const idx=state.currentIdx, correct=RAW[idx];
+  recordAttempt(idx,'main'); // 記錄此問題被問到
   const wrongs=shuffle(RAW.filter((_,i)=>i!==idx)).slice(0,4);
   const options=shuffle([correct,...wrongs]);
   const isFirst=(idx===state.startIdx);
@@ -727,13 +753,21 @@ function showMainQuiz(){
 
 function showSpringsQuiz(){
   const idx=state.currentIdx, correct=RAW[idx];
-  // 隨機從其他主項目抓2個作為錯誤選項
-  const others=RAW.filter((_,i)=>i!==idx && RAW[i].springs!==correct.springs);
-  const wrongs=shuffle(others).slice(0,2);
+  recordAttempt(idx,'springs'); // 記錄此問題被問到
+  // 收集所有不同的彈簧數量選項（排除正確答案）
+  const allSprings=new Set();
+  RAW.forEach((item,i)=>{
+    if(i!==idx && item.springs!==correct.springs){
+      allSprings.add(item.springs);
+    }
+  });
+  
+  // 從不同的選項中隨機選2個
+  const wrongOptions=shuffle([...allSprings]).slice(0,2);
   const options=shuffle([
     {zh:correct.springs,en:''},
-    {zh:wrongs[0]?.springs||'',en:''},
-    {zh:wrongs[1]?.springs||'',en:''}
+    {zh:wrongOptions[0]||'',en:''},
+    {zh:wrongOptions[1]||'',en:''}
   ].filter(o=>o.zh));
   
   renderQuiz('','「'+correct.main+'」的彈簧數量是？',
@@ -749,13 +783,21 @@ function showSpringsQuiz(){
 
 function showRepsQuiz(){
   const idx=state.currentIdx, correct=RAW[idx];
-  // 隨機從其他主項目抓2個作為錯誤選項
-  const others=RAW.filter((_,i)=>i!==idx && RAW[i].reps!==correct.reps);
-  const wrongs=shuffle(others).slice(0,2);
+  recordAttempt(idx,'reps'); // 記錄此問題被問到
+  // 收集所有不同的練習數量選項（排除正確答案）
+  const allReps=new Set();
+  RAW.forEach((item,i)=>{
+    if(i!==idx && item.reps!==correct.reps){
+      allReps.add(item.reps);
+    }
+  });
+  
+  // 從不同的選項中隨機選2個
+  const wrongOptions=shuffle([...allReps]).slice(0,2);
   const options=shuffle([
     {zh:correct.reps,en:''},
-    {zh:wrongs[0]?.reps||'',en:''},
-    {zh:wrongs[1]?.reps||'',en:''}
+    {zh:wrongOptions[0]||'',en:''},
+    {zh:wrongOptions[1]||'',en:''}
   ].filter(o=>o.zh));
   
   renderQuiz('','「'+correct.main+'」的練習數量是？',
@@ -771,6 +813,7 @@ function showRepsQuiz(){
 
 function showTypeQuiz(){
   const it=RAW[state.currentIdx];
+  recordAttempt(state.currentIdx,'type'); // 記錄此問題被問到
   const correct=it.type==='series'?'系列動作':'單一動作';
   renderQuiz('',`「${it.main}」是哪種類型？`,
     shuffle([{zh:'系列動作',en:'Series'},{zh:'單一動作',en:'Single'}]), correct,
@@ -786,6 +829,7 @@ function showTypeQuiz(){
 
 function showSubQuiz(){
   const it=RAW[state.currentIdx], correctObj=it.subs[state.subIdx];
+  recordAttempt(state.currentIdx,'sub',state.subIdx); // 記錄此問題被問到
   // 從同系列其他次項目抓（最多3個）
   const sameSubs=it.subs.filter((_,i)=>i!==state.subIdx);
   const innerPick=shuffle(sameSubs).slice(0,3);
@@ -938,6 +982,22 @@ function saveHistory(a){ localStorage.setItem(SKEY,JSON.stringify(a)); }
 function saveRecord(){
   const h=loadHistory();
   const now=new Date();
+  
+  // 只保存真正被測試過的項目
+  const testedIndices=new Set([...state.completedMains]);
+  // 如果當前項目正在進行中（已經開始問問題），也算被測試過
+  if(state.phase && state.currentIdx<RAW.length){
+    testedIndices.add(state.currentIdx);
+  }
+  
+  // 過濾掉未被測試的項目
+  const filteredErrors={};
+  testedIndices.forEach(idx=>{
+    if(state.errors[idx]){
+      filteredErrors[idx]=state.errors[idx];
+    }
+  });
+  
   h.push({
     date:now.getFullYear()+'/'+String(now.getMonth()+1).padStart(2,'0')+'/'+String(now.getDate()).padStart(2,'0'),
     time:String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0'),
@@ -945,7 +1005,7 @@ function saveRecord(){
     startIdx:state.startIdx,
     finished:state.finished,
     duration:state.timerSec,
-    errors:JSON.parse(JSON.stringify(state.errors))
+    errors:filteredErrors
   });
   saveHistory(h);
 }
@@ -1090,10 +1150,11 @@ function renderHistory(){
     Object.keys(r.errors).forEach(k=>{
       const idx=parseInt(k), e=r.errors[k];
       if(!totalErr[idx])return;
-      totalErr[idx].main+=(e.mainErrors||0); totalAtt[idx].main+=1;
-      totalErr[idx].springs+=(e.springsErrors||0); totalAtt[idx].springs+=1;
-      totalErr[idx].reps+=(e.repsErrors||0); totalAtt[idx].reps+=1;
-      totalErr[idx].type+=(e.typeErrors||0); totalAtt[idx].type+=1;
+      // 只有當錯誤數有被記錄時（包括0），才增加嘗試次數
+      if(e.mainErrors!==undefined){ totalErr[idx].main+=e.mainErrors; totalAtt[idx].main+=1; }
+      if(e.springsErrors!==undefined){ totalErr[idx].springs+=e.springsErrors; totalAtt[idx].springs+=1; }
+      if(e.repsErrors!==undefined){ totalErr[idx].reps+=e.repsErrors; totalAtt[idx].reps+=1; }
+      if(e.typeErrors!==undefined){ totalErr[idx].type+=e.typeErrors; totalAtt[idx].type+=1; }
       if(e.subErrors) e.subErrors.forEach((c,si)=>{
         if(totalErr[idx].sub[si]!==undefined){ totalErr[idx].sub[si]+=c; totalAtt[idx].sub[si]+=1; }
       });
